@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, ChevronDown, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { categories } from "@/lib/data/tools";
+import { useCategories } from "@/lib/hooks/use-tools";
 import { ParticleBackground } from "./particle-background";
+import { type ToolCategory } from "@/lib/data/tools";
 
 interface HeroSectionProps {
   onSearch: (query: string) => void;
@@ -16,6 +17,7 @@ interface HeroSectionProps {
 export function HeroSection({ onSearch, onCategorySelect }: HeroSectionProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { categories = [] } = useCategories();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

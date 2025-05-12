@@ -44,9 +44,6 @@ export function NavBar() {
             <Link href="/trending" className="px-4 py-2 text-sm text-white/90 transition-colors hover:text-white">
               Trending
             </Link>
-            <Link href="/categories" className="px-4 py-2 text-sm text-white/90 transition-colors hover:text-white">
-              Categories
-            </Link>
             <Link href="#submit" className="px-4 py-2 text-sm text-white/90 transition-colors hover:text-white">
               Submit
             </Link>
@@ -116,13 +113,6 @@ export function NavBar() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Trending
-              </Link>
-              <Link 
-                href="/categories" 
-                className="w-full rounded-lg py-3 text-center text-lg font-medium text-white"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Categories
               </Link>
               <Link 
                 href="#submit" 

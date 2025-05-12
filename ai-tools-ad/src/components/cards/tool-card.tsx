@@ -22,12 +22,12 @@ export function ToolCard({ tool, index }: ToolCardProps) {
       className="card-hover group relative flex flex-col rounded-xl border bg-card p-6 shadow-sm dark:border-gray-800"
     >
       {tool.isNew && (
-        <div className="absolute -right-2 -top-2 rounded-full bg-cyber-green px-3 py-1 text-xs font-medium text-black shadow-lg">
+        <div className="absolute -right-2 -top-2 z-20 rounded-full bg-cyber-green px-3 py-1 text-xs font-medium text-black shadow-lg">
           NEW
         </div>
       )}
       {tool.isTrending && (
-        <div className="absolute -right-2 -top-2 rounded-full bg-cyber-orange px-3 py-1 text-xs font-medium text-black shadow-lg">
+        <div className="absolute -right-2 -top-2 z-20 rounded-full bg-cyber-orange px-3 py-1 text-xs font-medium text-black shadow-lg">
           🔥 TRENDING
         </div>
       )}
@@ -67,7 +67,7 @@ export function ToolCard({ tool, index }: ToolCardProps) {
       </div>
 
       {/* Quick View - Only visible on hover */}
-      <div className="absolute inset-0 z-10 flex flex-col justify-between rounded-xl bg-gradient-to-b from-primary/90 to-primary/95 p-6 text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+      <div className="absolute inset-0 z-10 flex flex-col justify-between rounded-xl bg-gradient-to-b from-primary/90 to-primary/95 p-6 text-white opacity-0 transition-all duration-300 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto">
         <div>
           <h3 className="text-xl font-bold">{tool.name}</h3>
           <p className="mt-2 text-sm">{tool.description}</p>
@@ -82,7 +82,7 @@ export function ToolCard({ tool, index }: ToolCardProps) {
           </div>
         </div>
         
-        <div className="mt-4">
+        <div className="mt-4" data-no-click="true">
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
               <p className="text-white/70">Users</p>
@@ -98,7 +98,9 @@ export function ToolCard({ tool, index }: ToolCardProps) {
             href={tool.url} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="mt-4 block rounded-lg bg-white px-4 py-2 text-center text-sm font-medium text-primary transition-all hover:bg-white/90"
+            className="relative z-30 mt-4 block rounded-lg bg-white px-4 py-2 text-center text-sm font-medium text-primary transition-colors hover:bg-white/90 active:bg-white/80 focus:outline-none focus:ring-2 focus:ring-white/50"
+            onClick={(e) => e.stopPropagation()}
+            data-no-click="true"
           >
             Try {tool.name}
           </a>

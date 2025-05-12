@@ -31,9 +31,10 @@ npm install
 3. Create a `.env.local` file in the root directory with the following variables:
 
 ```
-# API配置
-NEXT_PUBLIC_API_URL=https://api.example.com
-API_KEY=your_api_key_here
+# RapidAPI配置
+NEXT_PUBLIC_API_URL=https://ai-tools-apps-database-resource.p.rapidapi.com
+NEXT_PUBLIC_RAPIDAPI_KEY=your_rapidapi_key_here
+NEXT_PUBLIC_RAPIDAPI_HOST=ai-tools-apps-database-resource.p.rapidapi.com
 
 # 开发模式配置
 NEXT_PUBLIC_USE_MOCK_DATA=true
@@ -53,24 +54,37 @@ npm run dev
 
 The application supports two data sources:
 
-1. **External API** - Real data from an API endpoint
+1. **RapidAPI AI Tools Directory** - Real data from the RapidAPI marketplace
 2. **Local Data** - Fallback data stored locally in the codebase
 
 Set `NEXT_PUBLIC_USE_MOCK_DATA=true` in your `.env.local` file to use local data during development.
 
-### API Integration
+### RapidAPI Integration
+
+To use the RapidAPI data source:
+
+1. Sign up for a RapidAPI account at [rapidapi.com](https://rapidapi.com/)
+2. Subscribe to the "AI Tools Directory" API (or similar AI tools API)
+3. Copy your RapidAPI key from your dashboard
+4. Add the key to your `.env.local` file as `NEXT_PUBLIC_RAPIDAPI_KEY`
+5. Set `NEXT_PUBLIC_USE_MOCK_DATA=false` to use the API
+
+The application will automatically transform the API responses to match our data models.
+
+### API Data Flow
 
 The data flow follows this pattern:
 
 1. React components use hooks from `src/lib/hooks/use-tools.ts`
 2. Hooks use SWR for data fetching, caching and revalidation
 3. SWR calls API functions from `src/lib/api/tools.ts`
-4. API functions make requests to the endpoints defined by `NEXT_PUBLIC_API_URL`
-5. If API calls fail, the system falls back to local data
+4. API functions make requests to the RapidAPI endpoints 
+5. The responses are transformed to match our application's data model
+6. If API calls fail, the system falls back to local data
 
-### API Endpoints
+### Expected API Endpoints
 
-The application expects the following API endpoints:
+The application is configured to work with the following endpoints from RapidAPI:
 
 - `GET /tools` - Get all tools
 - `GET /tools/{id}` - Get a specific tool by ID
@@ -81,6 +95,8 @@ The application expects the following API endpoints:
 - `GET /pricing-options` - Get all pricing options
 - `GET /tools/search?q={query}` - Search tools
 - `GET /tools/filter?{params}` - Filter tools with multiple parameters
+
+If your chosen RapidAPI service uses different endpoints, you may need to adjust the API mapping in `src/lib/api/tools.ts`.
 
 ### Data Models
 

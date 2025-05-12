@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
+import Image from "next/image";
 
 import { AiTool } from "@/lib/data/tools";
 import { ToolCard } from "@/components/cards/tool-card";
@@ -91,7 +92,18 @@ export function ToolList({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: index * 0.05 }}
           className="group relative"
-          onClick={() => onToolClick && onToolClick(tool.id)}
+          onClick={(e) => {
+            if (
+              e.target instanceof HTMLElement && 
+              (e.target.tagName === 'A' || 
+               e.target.closest('a') || 
+               e.target.getAttribute('data-no-click') === 'true')
+            ) {
+              e.stopPropagation();
+              return;
+            }
+            onToolClick && onToolClick(tool.id);
+          }}
         >
           {badgeRender && badgeRender(tool, index)}
           <div className="relative">
@@ -109,14 +121,27 @@ export function ToolList({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, delay: index * 0.05 }}
           className="cursor-pointer"
-          onClick={() => onToolClick && onToolClick(tool.id)}
+          onClick={(e) => {
+            if (
+              e.target instanceof HTMLElement && 
+              (e.target.tagName === 'A' || 
+               e.target.closest('a') || 
+               e.target.getAttribute('data-no-click') === 'true')
+            ) {
+              e.stopPropagation();
+              return;
+            }
+            onToolClick && onToolClick(tool.id);
+          }}
         >
           <div className="flex items-center space-x-4 rounded-lg border border-border p-4 hover:bg-accent/50 transition-colors">
             <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-border">
-              <img
+              <Image
                 src={tool.logo}
                 alt={`${tool.name} logo`}
                 className="h-full w-full object-cover"
+                width={56}
+                height={56}
               />
             </div>
             

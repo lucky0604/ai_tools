@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { TrendingUp, Calendar, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ToolDetailDialog } from "@/components/tools/tool-detail-dialog";
-import { aiTools, type ToolCategory } from "@/lib/data/tools";
+import { type ToolCategory } from "@/lib/data/tools";
 import { PageLayout } from "@/components/layout/page-layout";
 import { ToolList } from "@/components/tools/tool-list";
 import { ToolSearchSort } from "@/components/tools/tool-search-sort";
 import { Pagination } from "@/components/ui/pagination";
+import { useTrendingTools, useTool, useCategories, useFilteredTools } from "@/lib/hooks/use-tools";
 
 export default function TrendingPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,60 +22,96 @@ export default function TrendingPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const toolsPerPage = 6;
 
-  // Filter trending tools based on search query and category
-  const trendingTools = aiTools.filter(tool => tool.isTrending);
-  
-  const filteredTools = trendingTools.filter((tool) => {
-    const matchesSearch = searchQuery 
-      ? tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tool.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tool.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      : true;
-      
-    const matchesCategory = selectedCategory 
-      ? tool.category === selectedCategory
-      : true;
-      
-    return matchesSearch && matchesCategory;
-  });
-  
-  // Sort tools based on selected option
-  const sortedTools = [...filteredTools].sort((a, b) => {
-    switch (sortOption) {
-      case "rating":
-        return b.rating - a.rating;
-      case "users":
-        return b.usageStats.users - a.usageStats.users;
-      case "newest":
-        return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
-      case "name":
-        return a.name.localeCompare(b.name);
-      default:
-        return 0;
+  // 基于选择的时间周期构建查询参数
+  const getTimeframeQuery = (timeframe: "week" | "month" | "year"): string => {
+    const now = new Date();
+    let date = new Date();
+    
+    switch (timeframe) {
+      case "week":
+        date.setDate(now.getDate() - 7);
+        break;
+      case "month":
+        date.setMonth(now.getMonth() - 1);
+        break;
+      case "year":
+        date.setFullYear(now.getFullYear() - 1);
+        break;
     }
+    
+    return date.toISOString().split('T')[0]; // YYYY-MM-DD
+  };
+
+  // 获取趋势工具，根据时间框架不同可能需要不同的 API 调用
+  const { tools: allTrendingTools, isLoading: isLoadingTrending } = useFilteredTools({
+    trending: true,
+    sort: sortOption
   });
+
+  // 获取所有可用的类别
+  const { categories } = useCategories();
+
+  // 添加额外的过滤和处理
+  const filteredTools = useMemo(() => {
+    if (!allTrendingTools) return [];
+
+    // 设置创建时间过滤器
+    const timeframeDate = getTimeframeQuery(timeframe);
+    
+    return allTrendingTools.filter(tool => {
+      // 时间框架过滤
+      const toolDate = new Date(tool.lastUpdated).toISOString().split('T')[0];
+      const isInTimeframe = toolDate >= timeframeDate;
+
+      // 搜索过滤
+      const matchesSearch = searchQuery 
+        ? tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          tool.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          tool.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+        : true;
+        
+      // 类别过滤
+      const matchesCategory = selectedCategory 
+        ? tool.category === selectedCategory
+        : true;
+        
+      return isInTimeframe && matchesSearch && matchesCategory;
+    });
+  }, [allTrendingTools, searchQuery, selectedCategory, timeframe]);
   
-  // Pagination
-  const totalPages = Math.ceil(sortedTools.length / toolsPerPage);
-  const currentTools = sortedTools.slice(
+  // 获取类别选项，基于当前的趋势工具
+  const categoryOptions = useMemo(() => {
+    if (!allTrendingTools || allTrendingTools.length === 0) return [];
+    
+    const categories = new Set<ToolCategory>();
+    allTrendingTools.forEach(tool => {
+      categories.add(tool.category);
+    });
+    
+    return Array.from(categories);
+  }, [allTrendingTools]);
+  
+  // 分页
+  const totalPages = Math.ceil(filteredTools.length / toolsPerPage);
+  const currentTools = filteredTools.slice(
     (currentPage - 1) * toolsPerPage,
     currentPage * toolsPerPage
   );
   
-  // Reset to page 1 when filters change
+  // 重置为第1页当过滤器改变时
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory, sortOption, timeframe]);
   
-  // Open tool detail
+  // 打开工具详情
   const openToolDetail = (toolId: string) => {
     setSelectedTool(toolId);
   };
   
-  // Get selected tool data
-  const selectedToolData = selectedTool ? aiTools.find(tool => tool.id === selectedTool) : null;
+  // 获取选定的工具数据
+  const { tool: selectedToolData } = useTool(selectedTool || "");
   
-  // Clear all filters
+  // 清除所有过滤器
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedCategory(null);
@@ -135,28 +172,19 @@ export default function TrendingPage() {
       
       {/* Category Pills */}
       <div className="mb-6 flex flex-wrap gap-2">
-        {aiTools
-          .filter(tool => tool.isTrending)
-          .reduce((categories, tool) => {
-            if (!categories.includes(tool.category)) {
-              categories.push(tool.category);
-            }
-            return categories;
-          }, [] as ToolCategory[])
-          .map(category => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              size="sm"
-              className={`rounded-full ${selectedCategory === category ? 'bg-cyber-purple text-white' : ''}`}
-              onClick={() => setSelectedCategory(
-                selectedCategory === category ? null : category
-              )}
-            >
-              {category}
-            </Button>
-          ))
-        }
+        {categoryOptions.map(category => (
+          <Button
+            key={category}
+            variant={selectedCategory === category ? "default" : "outline"}
+            size="sm"
+            className={`rounded-full ${selectedCategory === category ? 'bg-cyber-purple text-white' : ''}`}
+            onClick={() => setSelectedCategory(
+              selectedCategory === category ? null : category
+            )}
+          >
+            {category}
+          </Button>
+        ))}
       </div>
       
       {/* Results Count */}
@@ -174,7 +202,7 @@ export default function TrendingPage() {
         
         <ToolList
           tools={currentTools}
-          isLoading={false}
+          isLoading={isLoadingTrending}
           viewMode={viewMode}
           onToolClick={openToolDetail}
           columnCount={3}
@@ -189,11 +217,11 @@ export default function TrendingPage() {
               </Button>
             </div>
           }
-          badgeRender={(tool) => tool.isTrending ? (
+          badgeRender={(tool) => (
             <div className="absolute right-2 top-2 z-10 rounded-full bg-cyber-orange px-2 py-1 text-xs font-medium text-white">
               Trending
             </div>
-          ) : null}
+          )}
         />
       </div>
       

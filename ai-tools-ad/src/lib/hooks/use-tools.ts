@@ -22,9 +22,17 @@ const fetcher = async <T>(key: string): Promise<T> => {
     case '/tools/filter': {
       const options: Record<string, any> = {};
       for (const [key, value] of queryParams.entries()) {
-        options[key] = value;
+        if (key === 'trending' || key === 'isNew') {
+          options[key] = value === 'true';
+        } else {
+          options[key] = value;
+        }
       }
       return toolsApi.getFilteredTools(options) as Promise<T>;
+    }
+    case '/tools/search': {
+      const query = queryParams.get('q') || '';
+      return toolsApi.searchTools(query) as Promise<T>;
     }
     default:
       if (path.startsWith('/tools/')) {
@@ -103,7 +111,12 @@ export function useNewTools() {
 export function useCategories() {
   const { data, error, isLoading } = useSWR<ToolCategory[]>(
     '/categories',
-    fetcher
+    fetcher,
+    {
+      revalidateOnFocus: false, // Don't revalidate on window focus
+      revalidateOnReconnect: false, // Don't revalidate on reconnect
+      dedupingInterval: 60000, // Dedupe requests within 1 minute
+    }
   );
 
   return {
