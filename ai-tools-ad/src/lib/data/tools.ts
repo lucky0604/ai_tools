@@ -208,17 +208,6 @@ export const aiTools: AiTool[] = [
   }
 ];
 
-export const categories: ToolCategory[] = [
-  "Generative AI",
-  "Text Processing",
-  "Image Generation",
-  "Code Assistant",
-  "Audio Processing",
-  "Video Creation",
-  "Data Analysis",
-  "Chat Bot"
-];
-
 export const pricingOptions: ToolPricing[] = [
   "Free",
   "Freemium",

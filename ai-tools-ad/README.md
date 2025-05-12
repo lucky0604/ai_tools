@@ -1,24 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Tools Advertisement Platform
+
+A modern Next.js website to showcase and explore AI tools.
+
+## Features
+
+- 🚀 Built with Next.js 14, React, TypeScript, and Tailwind CSS
+- 🎨 Modern UI with cyber-gradient theme
+- 📱 Fully responsive design
+- 🔍 Search and filter AI tools
+- 🔄 Dynamic data fetching from API
+- 🔐 API integration with fallback to local data
+- 📊 Categories and trending tools
+- 📱 Mobile-friendly UI
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ and npm
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Create a `.env.local` file in the root directory with the following variables:
+
+```
+# RapidAPI配置
+NEXT_PUBLIC_API_URL=https://ai-tools-apps-database-resource.p.rapidapi.com
+NEXT_PUBLIC_RAPIDAPI_KEY=your_rapidapi_key_here
+NEXT_PUBLIC_RAPIDAPI_HOST=ai-tools-apps-database-resource.p.rapidapi.com
+
+# 开发模式配置
+NEXT_PUBLIC_USE_MOCK_DATA=true
+```
+
+4. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Data Integration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Overview
+
+The application supports two data sources:
+
+1. **RapidAPI AI Tools Directory** - Real data from the RapidAPI marketplace
+2. **Local Data** - Fallback data stored locally in the codebase
+
+Set `NEXT_PUBLIC_USE_MOCK_DATA=true` in your `.env.local` file to use local data during development.
+
+### RapidAPI Integration
+
+To use the RapidAPI data source:
+
+1. Sign up for a RapidAPI account at [rapidapi.com](https://rapidapi.com/)
+2. Subscribe to the "AI Tools Directory" API (or similar AI tools API)
+3. Copy your RapidAPI key from your dashboard
+4. Add the key to your `.env.local` file as `NEXT_PUBLIC_RAPIDAPI_KEY`
+5. Set `NEXT_PUBLIC_USE_MOCK_DATA=false` to use the API
+
+The application will automatically transform the API responses to match our data models.
+
+### API Data Flow
+
+The data flow follows this pattern:
+
+1. React components use hooks from `src/lib/hooks/use-tools.ts`
+2. Hooks use SWR for data fetching, caching and revalidation
+3. SWR calls API functions from `src/lib/api/tools.ts`
+4. API functions make requests to the RapidAPI endpoints 
+5. The responses are transformed to match our application's data model
+6. If API calls fail, the system falls back to local data
+
+### Expected API Endpoints
+
+The application is configured to work with the following endpoints from RapidAPI:
+
+- `GET /tools` - Get all tools
+- `GET /tools/{id}` - Get a specific tool by ID
+- `GET /tools?category={category}` - Get tools by category
+- `GET /tools?trending=true` - Get trending tools
+- `GET /tools?isNew=true` - Get new tools
+- `GET /categories` - Get all categories
+- `GET /pricing-options` - Get all pricing options
+- `GET /tools/search?q={query}` - Search tools
+- `GET /tools/filter?{params}` - Filter tools with multiple parameters
+
+If your chosen RapidAPI service uses different endpoints, you may need to adjust the API mapping in `src/lib/api/tools.ts`.
+
+### Data Models
+
+The main data models are:
+
+- `AiTool` - Information about an AI tool
+- `ToolCategory` - Categories for AI tools
+- `ToolPricing` - Pricing options for AI tools
+
+## Folder Structure
+
+- `/src/app` - Next.js app router pages
+- `/src/components` - React components
+  - `/ui` - UI components
+  - `/layout` - Layout components
+  - `/cards` - Card components for displaying tools
+  - `/tools` - Tool-specific components
+  - `/hero` - Hero section components
+- `/src/lib` - Utility functions, hooks, and data
+  - `/api` - API service functions
+  - `/data` - Local data models and mock data
+  - `/hooks` - React hooks for data fetching
+  - `/utils` - Utility functions
+
+## Deployment
+
+The application can be deployed to any platform that supports Next.js applications, such as Vercel, Netlify, or AWS.
 
 ## Learn More
 
