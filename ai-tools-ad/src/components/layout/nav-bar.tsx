@@ -38,13 +38,13 @@ export function NavBar() {
 
           {/* Desktop Navigation */}
           <nav className="hidden items-center space-x-1 md:flex">
-            <Link href="#tools" className="px-4 py-2 text-sm text-white/90 transition-colors hover:text-white">
+            <Link href="/tools" className="px-4 py-2 text-sm text-white/90 transition-colors hover:text-white">
               Tools
             </Link>
-            <Link href="#trending" className="px-4 py-2 text-sm text-white/90 transition-colors hover:text-white">
+            <Link href="/trending" className="px-4 py-2 text-sm text-white/90 transition-colors hover:text-white">
               Trending
             </Link>
-            <Link href="#categories" className="px-4 py-2 text-sm text-white/90 transition-colors hover:text-white">
+            <Link href="/categories" className="px-4 py-2 text-sm text-white/90 transition-colors hover:text-white">
               Categories
             </Link>
             <Link href="#submit" className="px-4 py-2 text-sm text-white/90 transition-colors hover:text-white">
@@ -104,21 +104,21 @@ export function NavBar() {
           >
             <div className="container flex flex-col items-center space-y-6 px-4">
               <Link 
-                href="#tools" 
+                href="/tools" 
                 className="w-full rounded-lg py-3 text-center text-lg font-medium text-white"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Tools
               </Link>
               <Link 
-                href="#trending" 
+                href="/trending" 
                 className="w-full rounded-lg py-3 text-center text-lg font-medium text-white"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Trending
               </Link>
               <Link 
-                href="#categories" 
+                href="/categories" 
                 className="w-full rounded-lg py-3 text-center text-lg font-medium text-white"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
