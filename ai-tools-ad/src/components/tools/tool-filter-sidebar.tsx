@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { categories, pricingOptions, type ToolCategory, type ToolPricing } from "@/lib/data/tools";
+import { type ToolCategory, type ToolPricing } from "@/lib/data/tools";
 
 interface ToolFilterSidebarProps {
   selectedCategories: ToolCategory[];
@@ -15,6 +15,8 @@ interface ToolFilterSidebarProps {
   togglePricing: (pricing: ToolPricing) => void;
   clearFilters: () => void;
   isMobile?: boolean;
+  categories: ToolCategory[];
+  pricingOptions: ToolPricing[];
 }
 
 export function ToolFilterSidebar({
@@ -23,7 +25,9 @@ export function ToolFilterSidebar({
   toggleCategory,
   togglePricing,
   clearFilters,
-  isMobile = false
+  isMobile = false,
+  categories,
+  pricingOptions
 }: ToolFilterSidebarProps) {
   const [isCategoryOpen, setIsCategoryOpen] = React.useState(true);
   const [isPricingOpen, setIsPricingOpen] = React.useState(true);

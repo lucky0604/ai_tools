@@ -7,38 +7,52 @@ import Link from "next/link";
 import { HeroSection } from "@/components/hero/hero-section";
 import { ToolCard } from "@/components/cards/tool-card";
 import { Sidebar } from "@/components/layout/sidebar";
-import { aiTools, categories, type ToolCategory } from "@/lib/data/tools";
 import { Sparkles, Filter, ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAllTools, useCategories, useFilteredTools, useTrendingTools } from "@/lib/hooks/use-tools";
+import { Skeleton } from "@/components/ui/skeleton";
+import { type ToolCategory } from "@/lib/data/tools";
+
+// 仍然使用之前的辅助函数
+function getCategoryColor(category: string) {
+  const colors: Record<string, string> = {
+    "Generative AI": "from-purple-500 to-indigo-500",
+    "Text Processing": "from-blue-500 to-cyan-500",
+    "Image Generation": "from-green-500 to-teal-500",
+    "Code Assistant": "from-yellow-500 to-amber-500",
+    "Audio Processing": "from-red-500 to-rose-500",
+    "Video Creation": "from-orange-500 to-amber-500",
+    "Data Analysis": "from-sky-500 to-blue-500",
+    "Chat Bot": "from-pink-500 to-purple-500"
+  };
+  
+  return colors[category] || "from-gray-500 to-gray-700";
+}
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<ToolCategory | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const toolsPerPage = 8;
 
-  // Filter tools based on search query and category
-  const filteredTools = aiTools.filter((tool) => {
-    const matchesSearch = 
-      tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tool.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tool.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-    const matchesCategory = selectedCategory 
-      ? tool.category === selectedCategory 
-      : true;
-      
-    return matchesSearch && matchesCategory;
+  // 使用hooks来获取数据
+  const { categories = [] } = useCategories();
+  const { trendingTools = [] } = useTrendingTools();
+  
+  // 使用过滤hooks来获取工具
+  const { tools: filteredTools, isLoading } = useFilteredTools({
+    category: selectedCategory || undefined,
+    search: searchQuery || undefined,
   });
   
-  // Calculate pagination
+  // 计算分页
   const totalPages = Math.ceil(filteredTools.length / toolsPerPage);
   const currentTools = filteredTools.slice(
     (currentPage - 1) * toolsPerPage,
     currentPage * toolsPerPage
   );
   
-  // Reset to first page when filters change
+  // 重置到第一页当过滤器改变时
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory]);
@@ -78,7 +92,18 @@ export default function Home() {
           )}
         </div>
         
-        {filteredTools.length === 0 ? (
+        {isLoading ? (
+          // 加载状态
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array(8).fill(0).map((_, i) => (
+              <div key={i} className="flex flex-col space-y-3">
+                <Skeleton className="h-[180px] w-full rounded-xl" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : filteredTools.length === 0 ? (
           <div className="flex h-64 flex-col items-center justify-center rounded-xl border bg-card p-6 text-center">
             <h3 className="text-xl font-semibold">No tools found</h3>
             <p className="mt-2 text-muted-foreground">
@@ -150,11 +175,20 @@ export default function Home() {
           
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <div className="md:col-span-2">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                {aiTools
-                  .filter(tool => tool.isTrending)
-                  .slice(0, 4)
-                  .map((tool, index) => (
+              {trendingTools.length === 0 && isLoading ? (
+                // 加载状态
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  {Array(4).fill(0).map((_, i) => (
+                    <div key={i} className="flex flex-col space-y-3">
+                      <Skeleton className="h-[180px] w-full rounded-xl" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  {trendingTools.slice(0, 4).map((tool, index) => (
                     <motion.div
                       key={tool.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -173,7 +207,8 @@ export default function Home() {
                       </div>
                     </motion.div>
                   ))}
-              </div>
+                </div>
+              )}
             </div>
             
             <div>
@@ -199,44 +234,53 @@ export default function Home() {
             </Link>
           </div>
           
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {categories.slice(0, 4).map((category) => {
-              const toolsInCategory = aiTools.filter(tool => tool.category === category);
-              const categoryColor = getCategoryColor(category);
-              
-              return (
-                <Link href={`/categories?category=${category}`} key={category}>
-                  <motion.div
-                    whileHover={{ y: -5 }}
-                    className="cursor-pointer"
-                  >
-                    <div className="group relative h-40 rounded-xl overflow-hidden">
-                      <div className={`absolute inset-0 bg-gradient-to-r ${categoryColor} opacity-90`}></div>
-                      <div className="relative flex flex-col justify-between h-full p-6 text-white">
-                        <div>
-                          <h3 className="text-xl font-bold mb-1">{category}</h3>
-                          <p className="text-white/70 text-sm">
-                            {toolsInCategory.length} tools available
-                          </p>
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-white border-white/50 bg-transparent hover:bg-white/20"
-                          >
-                            Explore
-                            <ChevronRight className="ml-1 h-4 w-4" />
-                          </Button>
+          {categories.length === 0 && isLoading ? (
+            // 加载状态
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {Array(4).fill(0).map((_, i) => (
+                <Skeleton key={i} className="h-40 w-full rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {categories.slice(0, 4).map((category) => {
+                const toolsInCategory = filteredTools.filter(tool => tool.category === category);
+                const categoryColor = getCategoryColor(category);
+                
+                return (
+                  <Link href={`/categories?category=${category}`} key={category}>
+                    <motion.div
+                      whileHover={{ y: -5 }}
+                      className="cursor-pointer"
+                    >
+                      <div className="group relative h-40 rounded-xl overflow-hidden">
+                        <div className={`absolute inset-0 bg-gradient-to-r ${categoryColor} opacity-90`}></div>
+                        <div className="relative flex flex-col justify-between h-full p-6 text-white">
+                          <div>
+                            <h3 className="text-xl font-bold mb-1">{category}</h3>
+                            <p className="text-white/70 text-sm">
+                              {toolsInCategory.length} tools available
+                            </p>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-white border-white/50 bg-transparent hover:bg-white/20"
+                            >
+                              Explore
+                              <ChevronRight className="ml-1 h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                </Link>
-              );
-            })}
-          </div>
+                    </motion.div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
       
@@ -296,20 +340,4 @@ export default function Home() {
       </footer>
     </main>
   );
-}
-
-// Helper function to get category colors
-function getCategoryColor(category: string) {
-  const colors: Record<string, string> = {
-    "Generative AI": "from-purple-500 to-indigo-500",
-    "Text Processing": "from-blue-500 to-cyan-500",
-    "Image Generation": "from-green-500 to-teal-500",
-    "Code Assistant": "from-yellow-500 to-amber-500",
-    "Audio Processing": "from-red-500 to-rose-500",
-    "Video Creation": "from-orange-500 to-amber-500",
-    "Data Analysis": "from-sky-500 to-blue-500",
-    "Chat Bot": "from-pink-500 to-purple-500"
-  };
-  
-  return colors[category] || "from-gray-500 to-gray-700";
 }
